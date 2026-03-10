@@ -4,6 +4,7 @@ import axios from "axios";
 
 const API = "https://clipforge-backend.azurewebsites.net";
 
+
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const Icon = ({ path, size = 20, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -111,6 +112,8 @@ export default function App() {
     console.log("3 - submitting set to true");
     try {
       console.log("4 - about to call api");
+      console.log("API =", API);
+      console.log("POST URL =", `${API}/api/jobs`);
       const result = await api.submitJob({ url, ...settings });
       console.log("5 - api result:", result);
       const { jobId } = result;
