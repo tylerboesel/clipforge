@@ -30,30 +30,44 @@ export async function detectHighlights(segments, options) {
     .map((s) => `[${formatTime(s.start)}-${formatTime(s.end)}] ${s.text}`)
     .join("\n");
 
-  const systemPrompt = `You are an expert social media content editor specializing in short-form viral video content.
-Your task is to analyze video transcripts and identify the best moments to cut into TikTok/Reels clips.
+  const systemPrompt = `You are an expert short-form video editor.
+    Your task is to analyze a transcript and identify the best moments to cut into short clips.
+    
+    ${styleInstruction}
+    
+    Rules:
+    - Return up to ${maxClips} clips
+    - Each clip must be between ${minDuration} and ${maxDuration} seconds long
+    - Clips should start and end at natural speaking boundaries when possible
+    - Prefer moments with strong emotional hooks, punchlines, interesting reactions, useful insights, conflict, hype, or story payoff
+    - If there are no perfect viral moments, still return the best available moments
+    - Return ONLY valid JSON
+    - Return an object with a "clips" array
+    
+    Required JSON format:
+    {
+      "clips": [
+        {
+          "start": 142.5,
+          "end": 178.0,
+          "title": "Short catchy title",
+          "reason": "Why this is a strong clip",
+          "score": 9.2
+        }
+      ]
+    }`;
 
-${styleInstruction}
+    const userMessage = `Here is the video transcript with timestamps:
 
-Rules:
-- Each clip must be between ${minDuration} and ${maxDuration} seconds long
-- Clips should have a clear beginning and end (don't cut mid-sentence)
-- Prefer moments with strong emotional hooks, punchlines, or natural story arcs
-- Return ONLY valid JSON — no markdown, no explanation
-
-Output format (JSON array):
-[
-  {
-    "start": 142.5,
-    "end": 178.0,
-    "title": "Short catchy title for this clip",
-    "reason": "Why this is a great clip (1-2 sentences)",
-    "score": 9.2
-  }
-]`;
-
-  const userMessage = `Here is the video transcript with timestamps:\n\n${transcriptText}\n\nFind the top ${maxClips} best clip moments. Return JSON only.`;
-
+    ${transcriptText}
+    
+    Find up to ${maxClips} strong clip candidates.
+    
+    Important:
+    - Do not return an empty list unless there is truly no usable spoken content
+    - If the content is not highly viral, return the most interesting, funny, exciting, emotional, or informative moments anyway
+    - Return JSON only in the required format`;
+    
   logger.info(`[highlight-detector] Sending ${segments.length} segments to GPT-4`);
 
   const response = await openai.chat.completions.create({

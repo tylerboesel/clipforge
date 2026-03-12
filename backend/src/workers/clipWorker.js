@@ -81,6 +81,7 @@ clipQueue.process(CONCURRENCY, async (job) => {
 
     // ── Step 4: Transcription ───────────────────────────────────────────────
     const segments = await transcribeAudio(audioPath);
+    logger.info(`[worker][${jobId}] Transcript segments: ${segments.length}`);
     await jobStore.update(jobId, { segmentCount: segments.length });
 
     // Clean up audio file
@@ -96,6 +97,13 @@ clipQueue.process(CONCURRENCY, async (job) => {
       clipStyle,
     });
 
+    if (!highlights.length) {
+      throw new Error("No highlights detected from transcript");
+    }
+
+    logger.info(`[worker][${jobId}] Highlights found: ${highlights.length}`);
+    logger.info(`[worker][${jobId}] Highlights payload: ${JSON.stringify(highlights)}`);
+
     await setProgress(70, "processing", `Found ${highlights.length} highlights. Cutting clips...`);
 
     // ── Step 6: Cut clips ───────────────────────────────────────────────────
@@ -108,7 +116,10 @@ clipQueue.process(CONCURRENCY, async (job) => {
 
       const clipPath = await cutAndConvertClip(videoPath, highlight, jobId, i);
       const filename = path.basename(clipPath);
+
+      logger.info(`[worker][${jobId}] Uploading clip to Azure: ${filename}`);
       await uploadClipToAzure(clipPath, filename);
+      logger.info(`[worker][${jobId}] Uploaded clip to Azure successfully: ${filename}`);
 
       const clip = {
         id: `${jobId}_clip${i + 1}`,
