@@ -1,4 +1,10 @@
-
-.DS_Store
-node_modules/
 .env
+node_modules
+storage
+frontend/node_modules
+frontend/dist
+backend/node_modules
+.DS_Store
+*.mp4
+*.webm
+storage/

@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 
-const API = "https://clipforge-backend.azurewebsites.net";
-
+const API = import.meta.env.VITE_API_URL || "";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const Icon = ({ path, size = 20, className = "" }) => (
